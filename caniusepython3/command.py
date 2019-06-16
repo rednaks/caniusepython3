@@ -35,10 +35,10 @@ class Command(setuptools.Command):
             for project in requirements:
                 if not project:
                     continue
-                projects.append(pypi.just_name(project))
+                projects.append({'name': pypi.just_name(project)})
         extras = getattr(self.distribution, 'extras_require', None) or {}
         for value in extras.values():
-            projects.extend(map(pypi.just_name, value))
+            projects.append({'name': pypi.just_name(value)})
         return projects
 
     def initialize_options(self):

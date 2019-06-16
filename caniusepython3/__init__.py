@@ -46,7 +46,7 @@ def check(requirements_paths=[], metadata=[], projects=[]):
     manual_overrides = pypi.manual_overrides()
 
     for dependency in dependencies:
-        if dependency in manual_overrides:
+        if dependency['name'] in manual_overrides:
             continue
         elif not pypi.supports_py3(dependency):
             return False

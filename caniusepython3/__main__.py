@@ -30,39 +30,20 @@ logging.basicConfig(format='[%(levelname)s] %(message)s')
 
 
 def projects_from_cli(args):
-    """Take arguments through the CLI can create a list of specified projects."""
-    description = ('Determine if a set of project dependencies will work with '
-                   'Python 3')
-    parser = argparse.ArgumentParser(description=description)
-    req_help = 'path(s) to a pip requirements file (e.g. requirements.txt)'
-    parser.add_argument('--requirements', '-r', nargs='+', default=(),
-                        help=req_help)
-    meta_help = 'path(s) to a PEP 426 metadata file (e.g. PKG-INFO, pydist.json)'
-    parser.add_argument('--metadata', '-m', nargs='+', default=(),
-                        help=meta_help)
-    parser.add_argument('--projects', '-p', nargs='+', default=(),
-                        help='name(s) of projects to test for Python 3 support')
-    parser.add_argument('--verbose', '-v', action='store_true',
-                        help='verbose output (e.g. list compatibility overrides)')
-    parser.add_argument('--exclude', '-e', action='append', default=[],
-                        help='Ignore list')
-    parsed = parser.parse_args(args)
-
-    if not (parsed.requirements or parsed.metadata or parsed.projects):
-        parser.error("Missing 'requirements', 'metadata', or 'projects'")
 
     projects = []
-    if parsed.verbose:
+    kepversion = args.keep_version
+    if args.verbose:
         logging.getLogger('ciu').setLevel(logging.INFO)
-    projects.extend(projects_.projects_from_requirements(parsed.requirements))
+    projects.extend(projects_.projects_from_requirements(args.requirements))
     metadata = []
-    for metadata_path in parsed.metadata:
+    for metadata_path in args.metadata:
         with io.open(metadata_path) as file:
             metadata.append(file.read())
     projects.extend(projects_.projects_from_metadata(metadata))
-    projects.extend(map(packaging.utils.canonicalize_name, parsed.projects))
+    projects.extend(map(packaging.utils.canonicalize_name, args.projects))
 
-    projects = {i for i in projects if i not in parsed.exclude}
+    projects = [i for i in projects if i['name'] not in args.exclude]
     return projects
 
 
@@ -118,12 +99,12 @@ def pprint_blockers(blockers):
     return pprinted
 
 
-def check(projects):
+def check(projects, keep_version=False):
     """Check the specified projects for Python 3 compatibility."""
     log = logging.getLogger('ciu')
     log.info('{0} top-level projects to check'.format(len(projects)))
     print('Finding and checking dependencies ...')
-    blockers = dependencies.blockers(projects)
+    blockers = dependencies.blockers(projects, keep_version)
 
     print('')
     for line in message(blockers):
@@ -137,7 +118,31 @@ def check(projects):
 
 
 def main(args=sys.argv[1:]):
-    passed = check(projects_from_cli(args))
+    """Take arguments through the CLI can create a list of specified projects."""
+    description = ('Determine if a set of project dependencies will work with '
+                   'Python 3')
+    parser = argparse.ArgumentParser(description=description)
+    req_help = 'path(s) to a pip requirements file (e.g. requirements.txt)'
+    parser.add_argument('--requirements', '-r', nargs='+', default=(),
+                        help=req_help)
+    meta_help = 'path(s) to a PEP 426 metadata file (e.g. PKG-INFO, pydist.json)'
+    parser.add_argument('--metadata', '-m', nargs='+', default=(),
+                        help=meta_help)
+    parser.add_argument('--projects', '-p', nargs='+', default=(),
+                        help='name(s) of projects to test for Python 3 support')
+    parser.add_argument('--verbose', '-v', action='store_true',
+                        help='verbose output (e.g. list compatibility overrides)')
+    parser.add_argument('--exclude', '-e', action='append', default=[],
+                        help='Ignore list')
+
+    parser.add_argument('--keep-version', action='store_true', default=False,
+                       help='check the exact given version for Python 3 support')
+    parsed = parser.parse_args(args)
+
+    if not (parsed.requirements or parsed.metadata or parsed.projects):
+        parser.error("Missing 'requirements', 'metadata', or 'projects'")
+
+    passed = check(projects_from_cli(parsed), parsed.keep_version)
     if not passed:
       sys.exit(3)
 

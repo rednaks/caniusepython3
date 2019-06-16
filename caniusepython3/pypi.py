@@ -75,15 +75,19 @@ def _manual_overrides(_cache_date=None):
     return frozenset(map(packaging.utils.canonicalize_name, overrides.keys()))
 
 
-def supports_py3(project_name):
+def supports_py3(project, keep_version=False):
     """Check with PyPI if a project supports Python 3."""
     log = logging.getLogger("ciu")
-    log.info("Checking {} ...".format(project_name))
-    request = requests.get("https://pypi.org/pypi/{}/json".format(project_name))
+    log.info("Checking {} ...".format(project))
+    if project.get('version') and keep_version:
+        request = requests.get("https://pypi.org/pypi/{}/{}/json".format(
+            project['name'], project['version']))
+    else:
+        request = requests.get("https://pypi.org/pypi/{}/json".format(project['name']))
     if request.status_code >= 400:
         log = logging.getLogger("ciu")
         log.warning("problem fetching {}, assuming ported ({})".format(
-                        project_name, request.status_code))
+                        project, request.status_code))
         return True
     response = request.json()
     return any(c.startswith("Programming Language :: Python :: 3")

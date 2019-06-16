@@ -31,6 +31,7 @@ def projects_from_requirements(requirements):
                 reqs.append(packaging.requirements.Requirement(line))
             except packaging.requirements.InvalidRequirement:
                 log.warning('Skipping {0!r}: could not parse requirement'.format(line))
+        projects = []
         for req in reqs:
             if not req.name:
                 log.warning('A requirement lacks a name '
@@ -39,8 +40,17 @@ def projects_from_requirements(requirements):
                 log.warning(
                     'Skipping {0}: URL-specified projects unsupported'.format(req.name))
             else:
-                valid_reqs.append(req.name)
-    return frozenset(map(packaging.utils.canonicalize_name, valid_reqs))
+                project = {
+                    'name': packaging.utils.canonicalize_name(req.name)
+                }
+                if len(req.specifier) > 0:
+                    project['version'] = packaging.utils.canonicalize_version(
+                        [s.version for s in req.specifier][0]
+                    )
+
+                valid_reqs.append(project)
+
+    return valid_reqs
 
 
 def projects_from_metadata(metadata):

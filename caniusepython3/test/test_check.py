@@ -40,11 +40,16 @@ class CheckTest(unittest.TestCase):
 
     @skip_pypi_timeouts
     def test_success(self):
-        self.assertTrue(ciu.check(projects=['scipy', 'numpy', 'ipython']))
+        projects = [
+            {'name': 'scipy'},
+            {'name': 'numpy'},
+            {'name': 'ipython'}
+        ]
+        self.assertTrue(ciu.check(projects=projects))
 
     @skip_pypi_timeouts
     def test_failure(self):
-        self.assertFalse(ciu.check(projects=[py2_project]))
+        self.assertFalse(ciu.check(projects=[{'name': py2_project}]))
 
     @skip_pypi_timeouts
     def test_requirements(self):
@@ -66,12 +71,12 @@ class CheckTest(unittest.TestCase):
     def test_case_insensitivity(self):
         funky_name = (py2_project[:len(py2_project)].lower() +
                       py2_project[len(py2_project):].upper())
-        self.assertFalse(ciu.check(projects=[funky_name]))
+        self.assertFalse(ciu.check(projects=[{'name': funky_name}]))
 
     @skip_pypi_timeouts
     def test_ignore_missing_projects(self):
-        self.assertTrue(ciu.check(projects=['sdfsjdfsdlfk;jasdflkjasdfdfsdf']))
+        self.assertTrue(ciu.check(projects=[{'name':'sdfsjdfsdlfk;jasdflkjasdfdfsdf'}]))
 
     @skip_pypi_timeouts
     def test_manual_overrides(self):
-        self.assertTrue(ciu.check(projects=["unittest2"]))
+        self.assertTrue(ciu.check(projects=[{'name': "unittest2"}]))

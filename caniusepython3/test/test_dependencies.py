@@ -59,7 +59,7 @@ class DependenciesTests(unittest.TestCase):
                 self.run_requires = run_requires
         fake_deps = FakeLocated(['easy_thumbnail', 'stuff>=4.0.0'])
         locate_mock.side_effect = lambda *args, **kargs: fake_deps
-        got = dependencies.dependencies('does not matter')
+        got = dependencies.dependencies({'name':'does not matter'})
         self.assertEqual({'easy-thumbnail', 'stuff'}, frozenset(got))
 
 # XXX Tests covering dependency loops, e.g. a -> b, b -> a.
@@ -67,24 +67,24 @@ class DependenciesTests(unittest.TestCase):
 class NetworkTests(unittest.TestCase):
 
     def test_blockers(self):
-        got = frozenset(dependencies.blockers(['ralph_scrooge']))
+        got = frozenset(dependencies.blockers([{'name':'ralph_scrooge'}]))
         want = frozenset([('ralph', 'ralph_scrooge'), ('ralph-assets', 'ralph_scrooge')])
         self.assertEqual(got, want)
 
     def test_dependencies(self):
-        got = dependencies.dependencies('pastescript')
+        got = dependencies.dependencies({'name': 'pastescript'})
         self.assertEqual(set(got), frozenset(['six', 'pastedeploy', 'paste']))
 
     def test_dependencies_no_project(self):
-        got = dependencies.dependencies('sdflksjdfsadfsadfad')
+        got = dependencies.dependencies({'name': 'sdflksjdfsadfsadfad'})
         self.assertIsNone(got)
 
     def test_blockers_no_project(self):
-        got = dependencies.blockers(['asdfsadfdsfsdffdfadf'])
+        got = dependencies.blockers([{'name':'asdfsadfdsfsdffdfadf'}])
         self.assertEqual(got, frozenset())
 
     def test_manual_overrides(self):
-        self.assertEqual(dependencies.blockers(["unittest2"]), frozenset())
+        self.assertEqual(dependencies.blockers([{'name':"unittest2"}]), frozenset())
 
 
 if __name__ == '__main__':

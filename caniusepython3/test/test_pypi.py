@@ -63,7 +63,7 @@ class NetworkTests(unittest.TestCase):
 
     @skip_pypi_timeouts
     def test_supports_py3(self):
-        self.assertTrue(pypi.supports_py3("caniusepython3"))
-        self.assertFalse(pypi.supports_py3("pil"))
+        self.assertTrue(pypi.supports_py3({'name':"caniusepython3"}))
+        self.assertFalse(pypi.supports_py3({'name':"pil"}))
         # Unfound projects are considered ported.
-        self.assertTrue(pypi.supports_py3("sdfffavsafasvvavfdvavfavf"))
+        self.assertTrue(pypi.supports_py3({'name':"sdfffavsafasvvavfdvavfavf"}))

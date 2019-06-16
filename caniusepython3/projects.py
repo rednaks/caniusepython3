@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from caniusepython3 import pypi
 
 import distlib.metadata
+from distlib.locators import locate
 import packaging.requirements
 import packaging.utils
 
@@ -58,5 +59,15 @@ def projects_from_metadata(metadata):
     projects = []
     for data in metadata:
         meta = distlib.metadata.Metadata(fileobj=io.StringIO(data))
-        projects.extend(pypi.just_name(project) for project in meta.run_requires)
-    return frozenset(map(packaging.utils.canonicalize_name, projects))
+        projects.append(
+            {
+                'name': packaging.utils.canonicalize_name(meta.name), 
+                'version': packaging.utils.canonicalize_version(meta.version)
+            })
+        for dep in meta.run_requires:
+            d = locate(dep)
+            projects.append({
+                'name': packaging.utils.canonicalize_name(d.name),
+                'version': packaging.utils.canonicalize_version(d.version)
+            })
+    return projects

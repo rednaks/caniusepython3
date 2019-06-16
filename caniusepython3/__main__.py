@@ -41,7 +41,10 @@ def projects_from_cli(args):
         with io.open(metadata_path) as file:
             metadata.append(file.read())
     projects.extend(projects_.projects_from_metadata(metadata))
-    projects.extend(map(packaging.utils.canonicalize_name, args.projects))
+
+    # transform list of projects into requirements:
+    projects.extend(projects_.projects_from_list(args.projects))
+
 
     projects = [i for i in projects if i['name'] not in args.exclude]
     return projects

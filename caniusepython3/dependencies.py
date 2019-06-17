@@ -98,7 +98,7 @@ def blockers(projects, keep_version=False):
                     # Can't find any results for a project, so ignore it so as
                     # to not accidentally consider indefinitely that a project
                     # can't port.
-                    del reasons[parent]
+                    del reasons[parent['name']]
                     continue
                 log.info('Dependencies of {0}: {1}'.format(project, deps))
                 unchecked_deps = []
